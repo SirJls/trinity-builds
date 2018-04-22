@@ -1,0 +1,75 @@
+# Maintainer: Sjors Sparreboom <mail@sirjls.nl>
+pkgname='vim-git'
+_pkgname='vim'
+provides=('vim')
+pkgver=r8350.02e802b2d
+pkgrel=1
+pkgdesc="VIM: Vi IMproved"
+arch=('i686' 'x86_64')
+url="http://github.com/vim/vim"
+license=('custom:vim')
+depends=('vim-runtime-git' 'gpm' 'python2' 'python' 'acl')
+optdepends=('python2' 'python')
+makedepends=('libxt' 'git')
+groups=('custom')
+provides=('vim')
+conflicts=('vim' 'vim-git' 'vim-minimal' 'vim-python3' 'gvim' 'gvim-python3')
+source=("git://github.com/vim/vim.git")
+md5sums=('SKIP')
+
+pkgver() {
+	cd "${srcdir}/${_pkgname}"
+	printf "r%s.%s\n" "$(git rev-list --count master)" "$(git rev-parse --short master)"
+}
+
+prepare() {
+	cd "${srcdir}/${_pkgname}"
+
+	# set path for the global (g)vimrc file
+        sed -i 's|^.*\(#define SYS_.*VIMRC_FILE.*"\) .*$|\1|' \
+          src/feature.h
+        sed -i 's|^.*\(#define VIMRC_FILE.*"\) .*$|\1|' \
+          src/feature.h
+
+	(cd src && autoconf)
+}
+
+build() {
+	cd "${srcdir}/${_pkgname}"
+
+	./configure \
+		--prefix=/usr                   \
+		--localstatedir=/var/lib/vim    \
+		--with-features=huge            \
+		--with-compiledby='$(uname -n)' \
+		--enable-gpm                    \
+		--enable-acl                    \
+		--with-x=yes                    \
+		--disable-gui                   \
+		--enable-multibyte              \
+		--enable-cscope                 \
+		--enable-pythoninterp=dynamic   \
+		--enable-python3interp=dynamic
+
+	make
+}
+
+package() {
+	cd "${srcdir}/${_pkgname}"
+
+	make -j1 VIMRCLOC=/etc DESTDIR="${pkgdir}/" install
+
+        # provided by (n)vi
+	rm "${pkgdir}"/usr/bin/{ex,view}
+
+	find "${pkgdir}"/usr/share/man -regex '.*\(ex.1\|view.1\|evim.1\)$' -execdir rm -f {} \;
+
+        # runtime installed by runtime package
+	rm -r "${pkgdir}"/usr/share/vim
+
+        # no desktop files and icons
+        rm -r "${pkgdir}"/usr/share/{applications,icons}
+
+        # license
+	install -Dm644 runtime/doc/uganda.txt "${pkgdir}"/usr/share/licenses/${_pkgname}/license.txt
+}

@@ -1,0 +1,33 @@
+#a Maintainer: Sjors Sparreboom <mail@sirjls.nl>
+pkgname=i3lock
+pkgver=2.10
+pkgrel=1
+pkgdesc="A simple screen locker like slock."
+arch=('i686' 'x86_64')
+url="https://i3wm.org/i3lock"
+license=('MIT')
+groups=('custom')
+depends=('xcb-util-image' 'libev' 'cairo' 'libxkbcommon-x11' 'pam')
+provides=('i3lock')
+conflicts=('i3lock')
+source=("https://i3wm.org/i3lock/${pkgname}-$pkgver.tar.bz2"{,.asc})
+sha256sums=('29eb32bf317fad7b292e15be6c02d693bfc6dbfdd6d98f0a6db71e189140c8ee'
+            'SKIP')
+validpgpkeys=('424E14D703E7C6D43D9D6F364E7160ED4AC8EE1D') # Michael Stapelberg
+
+build() {
+	cd "${pkgname}-${pkgver}"
+	# Fix ticket FS#31544, sed line taken from gentoo
+	sed \
+		-e 's:login:system-auth:' \
+	        -i i3lock.pam
+	make -j8
+	gzip i3lock.1
+}
+
+package() {
+	cd "${pkgname}-${pkgver}"
+	make DESTDIR="$pkgdir/" install
+	install -Dm644 i3lock.1.gz ${pkgdir}/usr/share/man/man1/i3lock.1.gz
+	install -Dm644 LICENSE ${pkgdir}/usr/share/licenses/${pkgname}/LICENSE
+}

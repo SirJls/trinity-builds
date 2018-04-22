@@ -1,0 +1,39 @@
+#a Maintainer: Sjors Sparreboom <mail@sirjls.nl>
+pkgname=i3
+pkgver=4.15
+pkgrel=1
+pkgdesc="A tiling window manager, written from scratch."
+arch=('i686' 'x86_64')
+url="https://i3wm.org"
+license=('BSD')
+groups=('custom')
+depends=('xcb-util-cursor' 'xcb-util-keysyms' 'xcb-util-wm' 'xcb-util-xrm' 'libev' 'yajl' 'startup-notification'
+'pango' 'libxkbcommon-x11')
+makedepends=('bison' 'flex' 'asciidoc' 'xmlto')
+optdepends=('dmenu' 'i3status' 'i3lock' 'perl' 'perl-anyevent-i3' 'perl-json-xs')
+provides=('i3')
+conflicts=('i3')
+source=("https://i3wm.org/downloads/${pkgname}-$pkgver.tar.bz2"{,.asc})
+sha256sums=('217d524d1fbc85ae346b25f6848d1b7bcd2c23184ec88d29114bf5a621385326'
+            '29f2cdc541487b930e4fedc17f66e935b65b7edc98a647ed1dd123e48fc2a233')
+validpgpkeys=('424E14D703E7C6D43D9D6F364E7160ED4AC8EE1D') # Michael Stapelberg
+
+prepare() {
+	mkdir build
+	cd "$pkgname-$pkgver"
+	autoreconf -fvi
+}
+
+build() {
+	cd build
+
+	../${pkgname}-$pkgver/configure --prefix=/usr --sysconfdir=/etc
+	make -j8
+}
+
+package() {
+	cd build
+	make DESTDIR="$pkgdir/" install
+	install -Dt "${pkgdir}/usr/share/licenses/${pkgname}" -m644 ../${pkgname}-$pkgver/LICENSE
+	install -Dt "${pkgdir}/usr/share/man/man1/${pkgname}" -m644 man/*.1
+}

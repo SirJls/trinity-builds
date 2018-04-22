@@ -1,0 +1,54 @@
+# Maintainer: Sjors Sparreboom <mail@sirjls.nl>
+pkgname=st-git
+_pkgname=st
+pkgver=r1038.041912a
+pkgrel=1
+pkgdesc='Lightweight VTE for Xorg'
+url='http://git.suckless.org/st/'
+arch=('i686' 'x86_64')
+license=('MIT')
+depends=('libxft')
+makedepends=('ncurses' 'libxext' 'git')
+_patches=('002.patch')
+source=("git://git.suckless.org/st" "${_patches[@]}")
+sha256sums=('SKIP'
+            '98f23c408d7b075477ba40aa66823202431e6c1bc2c4b2cac3c9c9f1d129cadd')
+
+provides=("${_pkgname}")
+conflicts=("${_pkgname}")
+
+pkgver() {
+	cd "${srcdir}/${_pkgname}"
+	printf "r%s.%s\n" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+	cd "${srcdir}/${_pkgname}"
+
+	sed -i '/tic /d' Makefile
+
+	for f in "${source[@]}"; do
+		if [[ "$f" == "config.h" ]]; then
+			# add config.h if present in source array
+			# Note: this supersedes the above sed to config.def.h
+			cp "$srcdir/$f" .
+			continue
+		elif [[ "$f" == *.diff || "$f" == *.patch ]]; then
+			# add all patches present in source array
+			patch -Np0 <"$srcdir/$f"
+			cp config.def.h config.h
+		fi
+	done
+}
+
+build() {
+	cd "${srcdir}/${_pkgname}"
+	make X11INC=/usr/include/X11 X11LIB=/usr/lib/X11
+}
+
+package() {
+	cd "${srcdir}/${_pkgname}"
+	make PREFIX=/usr DESTDIR="${pkgdir}" install
+	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+	install -Dm644 README "${pkgdir}/usr/share/doc/${pkgname}/README"
+}

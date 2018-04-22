@@ -1,0 +1,53 @@
+# Maintainer: Sjors Sparreboom <mail@sirjls.nl>
+pkgname=neomutt
+pkgver=r8924.91161747
+pkgrel=1
+pkgdesc='The New Mutt: powerful text-based mail client with all the best feature patches'
+url='http://www.neomutt.org/'
+license=('GPL')
+source=('git://github.com/neomutt/neomutt.git')
+arch=('i686' 'x86_64')
+depends=('openssl' 'gdbm' 'mime-types' 'libsasl' 'gnupg' 'gpgme' 'libidn' 'krb5' 'notmuch-runtime')
+optdepends=('urlview: for url menu')
+makedepends=('git' 'gnupg' 'libxslt')
+groups=('custom')
+conflicts=('mutt')
+provides=('mutt')
+md5sums=('SKIP')
+
+pkgver() {
+	cd "$pkgname"
+        printf "r%s.%s\n" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd "$pkgname"
+
+	# Configure the build.
+	./configure           \
+		--prefix=/usr       \
+		--sysconfdir=/etc   \
+		--with-notmuch=/usr \
+		--notmuch           \
+		--with-gpgme=/usr   \
+		--gpgme             \
+		--with-gss=/usr     \
+		--gss               \
+		--with-ssl=/usr     \
+		--ssl               \
+		--with-sasl=/usr    \
+		--sasl              \
+		--with-gdbm=/usr    \
+		--gdbm              \
+		--with-idn=/usr     \
+		--disable-doc       \
+		--enable-pgp
+	make
+}
+
+package() {
+	cd "$pkgname"
+
+	# Install the program.
+	make DESTDIR="${pkgdir}" install
+}
