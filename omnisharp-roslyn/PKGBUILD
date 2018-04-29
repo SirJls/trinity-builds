@@ -1,0 +1,30 @@
+# Maintainer: Sjors Sparreboom <mail@sirjls.nl>
+pkgname=omnisharp-roslyn
+pkgver=2.9.2
+pkgrel=1
+pkgdesc=".NET development platform based on on Roslyn workspaces."
+arch=('x86_64')
+url="https://github.com/OmniSharp/omnisharp-roslyn"
+license=('MIT')
+depends=('mono')
+noextract=('$pkgname-$pkgver.tar.gz')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/OmniSharp/omnisharp-roslyn/releases/download/ca-$pkgver/omnisharp.http-linux-x64.tar.gz"
+"LICENSE::https://raw.githubusercontent.com/OmniSharp/omnisharp-roslyn/master/license.md")
+md5sums=('4c37c35a5e40bc227ccc19c447bdc09f'
+         '19a620e118d664537fb9dac578810f8d')
+
+package() {
+	# binaries
+	mkdir -p $pkgdir/opt/$pkgname
+	tar -xf $srcdir/$pkgname-$pkgver.tar.gz -C $pkgdir/opt/$pkgname
+
+	#setup permissions
+	chown -R root:root $pkgdir/opt/$pkgname
+	find $pkgdir/opt -type f | xargs chmod 644
+	find $pkgdir/opt -type d | xargs chmod 755
+	chmod 755 $pkgdir/opt/$pkgname/${pkgname%%-*}/OmniSharp.exe
+
+	# license
+	install -D -m644 $srcdir/LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
+

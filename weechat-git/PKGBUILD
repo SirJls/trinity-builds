@@ -1,0 +1,39 @@
+# Maintainer: Sjors Sparreboom <mail@sirjls.nl>
+
+pkgname=weechat-git
+pkgver=r8631.312202116
+pkgrel=1
+pkgdesc="Fast, light & extensible IRC client (ncurses UI)"
+arch=('i686' 'x86_64')
+url="http://www.weechat.org/"
+license=('GPL')
+groups=('custom')
+depends=('gnutls' 'curl' 'libgcrypt')
+makedepends=('git' 'cmake' 'pkgconfig' 'perl' 'python3' 'lua' 'tcl' 'ruby' 'aspell')
+optdepends=('perl' 'python2' 'lua' 'tcl' 'ruby' 'aspell' 'guile')
+provides=('weechat')
+conflicts=('weechat')
+source=("$pkgname::git://github.com/weechat/weechat.git")
+md5sums=('SKIP')
+
+pkgver() {
+	cd "$srcdir/${pkgname}"
+	printf "r%s.%s\n" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd "$srcdir/${pkgname}"
+	cmake -DCMAKE_INSTALL_PREFIX=/usr \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DENABLE_MAN=ON \
+		-DPYTHON_EXECUTABLE=/usr/bin/python3 \
+		-DPYTHON_LIBRARY=/usr/lib/libpython3.6m.so \
+		-DENABLE_DOC=ON \
+		-DENABLE_PYTHON3=ON
+	make
+}
+
+package() {
+	cd "$srcdir/$pkgname"
+	make DESTDIR="$pkgdir" install
+}

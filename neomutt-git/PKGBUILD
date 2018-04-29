@@ -1,6 +1,6 @@
 # Maintainer: Sjors Sparreboom <mail@sirjls.nl>
 pkgname=neomutt
-pkgver=r8924.91161747
+pkgver=r9009.e215b591
 pkgrel=1
 pkgdesc='The New Mutt: powerful text-based mail client with all the best feature patches'
 url='http://www.neomutt.org/'
